@@ -10,12 +10,11 @@ exports.handler = function (context, event, callback) {
     return callback(null, response);
   }
 
-  const isTesting = context.TESTMODE || true
+  const isTesting = (context.TESTMODE !== undefined) ? (context.TESTMODE == "true") : true;
+  console.log(`Is test Mode ${context.TESTMODE} ${isTesting}`);
   
-  //let client = context.getTwilioClient();
-  //let from = context.TWILIO_PHONE_NUMBER
-  let client = require('twilio')(context.TEST_ACCOUNT_SID, context.TEST_AUTH_TOKEN);
-  let from = '+15005550006'
+  let client = context.getTwilioClient();
+  let from = context.TWILIO_PHONE_NUMBER
   
   if( isTesting ) {
     client = require('twilio')(context.TEST_ACCOUNT_SID, context.TEST_AUTH_TOKEN);
@@ -40,8 +39,8 @@ exports.handler = function (context, event, callback) {
         //const toNumber = (err.code === 21211) ? err.message.split(' ')[3] : 'unknown'
         const numberList = err.message.match(/\+[0-9]+/g) || [];
         const toNumber = numberList.length > 0 ? numberList[0] : 'unknown'
-        console.log(`Message failed for ${toNumber} [${err.code} ${err.message}]`);
-        return { success: false, error: err.message, to: toNumber };
+        console.log(`Message failed for ${toNumber} or ${to} [${err.code} ${err.message}]`);
+        return { success: false, error: err.message, to };
       });
   });
 
