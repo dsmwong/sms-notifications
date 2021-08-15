@@ -117,7 +117,9 @@ async function sendMessages(form) {
         const elem = document.getElementById('id_' + to.replace('+', ''));
         if (elem) {
           elem.className = item.success ? 'success' : 'failed';
-          if( !item.success ) {
+          if( item.success ) {
+            elem.textContent += ' Message SID: ' + item.sid;
+          } else {
             elem.textContent += ' Error: ' + item.error;
           }
         } else {

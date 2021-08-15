@@ -55,6 +55,11 @@
       .hide {
         display: none;
       }
+
+      label {
+        display: inline;
+        margin-right: 20px;
+      }
     </style>
   </head>
   <body>
@@ -68,7 +73,7 @@
         <form id="sendNotificationForm">
           <fieldset>
             <label for="passcodeInput" required>Application Passcode</label>
-            <input name="passcode" id="passcodeInput" />
+            <input type="password" name="passcode" id="passcodeInput" />
             <label for="messageInput">Write your message:</label>
             <textarea name="message" id="messageInput" required></textarea>
             <input class="button-primary" type="submit" value="Send" />
