@@ -39,7 +39,7 @@ fileSelector.addEventListener('change', (event) => {
 
 const messageBox = document.getElementById('messageInput');
 const segmentCountMessage = document.getElementById('segmentCountMessage');
-messageBox.addEventListener('keyup', (evt) => {
+messageBox.addEventListener('input', (evt) => {
   if (messageBox.value.length > 0) {
     let segmentCount = 1
     const [maxCharInMessage, maxCharInSegment] = (/[^\u0000-\u00ff]/.test(messageBox.value)) ? [70, 67] : [160, 153];
