@@ -37,6 +37,23 @@ fileSelector.addEventListener('change', (event) => {
 
 });
 
+const messageBox = document.getElementById('messageInput');
+const segmentCountMessage = document.getElementById('segmentCountMessage');
+messageBox.addEventListener('keyup', (evt) => {
+  if (messageBox.value.length > 0) {
+    let segmentCount = 1
+    const [maxCharInMessage, maxCharInSegment] = (/[^\u0000-\u00ff]/.test(messageBox.value)) ? [70, 67] : [160, 153];
+    if( messageBox.value.length > maxCharInMessage ) {
+      // https://www.twilio.com/docs/glossary/what-sms-character-limit
+      segmentCount = Math.ceil(messageBox.value.length / maxCharInSegment);
+    }
+    segmentCountMessage.innerText = `${messageBox.value.length} characters in message, this is ${segmentCount} segements`;
+    segmentCountMessage.innerText += (maxCharInMessage == 70 ) ? ' and Unicode Detected' : '';
+  } else {
+    segmentCountMessage.innerText = '';
+  }
+});
+
 function parseCSV(file) {
   const reader = new FileReader();
   reader.addEventListener('load', (event) => {
@@ -142,39 +159,6 @@ async function sendMessages(form) {
   }
   clearForm(form);
   console.log('Sending to ' + sent.length + ' recipients');
-
-  // clearForm(form);
-
-  // fetch('send-messages', {
-  //   method: 'POST',
-  //   headers: {
-  //     'Content-Type': 'application/json',
-  //   },
-  //   body: JSON.stringify(data),
-  // })
-  //   .then((resp) => {
-  //     if (resp.ok) {
-  //       return resp.json();
-  //     }
-
-  //     if (resp.status === 401) {
-  //       throw new Error('Invalid Passcode');
-  //     } else {
-  //       throw new Error(
-  //         'Unexpected error. Please check the logs for what went wrong.'
-  //       );
-  //     }
-  //   })
-  //   .then((body) => {
-  //     const successCount = body.result.reduce((currentCount, resultItem) => {
-  //       return resultItem.success ? currentCount + 1 : currentCount;
-  //     }, 0);
-
-  //     resultSection.innerText = `Sent ${successCount} of ${body.result.length} messages. Check logs for details`;
-  //   })
-  //   .catch((err) => {
-  //     resultSection.innerText = err.message;
-  //   });
 }
 
 sendNotificationForm.addEventListener('submit', (evt) => {
