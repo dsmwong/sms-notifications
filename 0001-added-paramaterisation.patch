@@ -1,0 +1,262 @@
+From 7bc89b0f529994625a79201d57dac06af84dc7ad Mon Sep 17 00:00:00 2001
+From: Dan Wong <dawong@twilio.com>
+Date: Tue, 24 Aug 2021 17:55:45 +1000
+Subject: [PATCH] added paramaterisation
+
+---
+ assets/index.html              | 55 ++++++++++++++++++++++++++++++++--
+ assets/index.js                | 40 ++++++++++++++++++-------
+ functions/send-messages.js     | 19 +++++++++---
+ package.json                   |  3 +-
+ testfiles/10numbers-params.csv | 10 +++++++
+ 5 files changed, 110 insertions(+), 17 deletions(-)
+ create mode 100644 testfiles/10numbers-params.csv
+
+diff --git a/assets/index.html b/assets/index.html
+index 876a12d..3d96116 100644
+--- a/assets/index.html
++++ b/assets/index.html
+@@ -29,6 +29,11 @@
+         flex: 1;
+       }
+ 
++      div[role='results'] {
++        max-width: 100%;
++        flex: 1;
++      }
++
+       footer {
+         text-align: center;
+       }
+@@ -42,12 +47,18 @@
+         height: 50px;
+       }
+ 
+-      li.success {
++      span.result {
++        padding: 5px;
++        border-radius: 3px;
++        margin-left: 10px;
++      }
++
++      li.success span.result {
+         background-color: green;
+         color: white;
+       }
+ 
+-      li.failed {
++      li.failed span.result {
+         background-color: red;
+         color: white;
+       }
+@@ -60,6 +71,42 @@
+         display: inline;
+         margin-right: 20px;
+       }
++
++
++      /* Tooltip container */
++.tooltip {
++  position: relative;
++  /* display: inline-block; */
++  /* border-bottom: 1px dotted black;  */
++}
++
++/* Tooltip text */
++.tooltip .tooltiptext {
++  visibility: hidden;
++  /* width: 120px; */
++  background-color: #555;
++  color: #fff;
++  text-align: center;
++  padding: 5px;
++  border-radius: 3px;
++
++  /* Position the tooltip text */
++  /* position: absolute;
++  z-index: 1;
++  bottom: 125%;
++  left: 50%;  */
++  margin-left: 20px;
++
++  /* Fade in tooltip */
++  opacity: 0;
++  transition: opacity 0.3s;
++}
++
++/* Show the tooltip text when you mouse over the tooltip container */
++.tooltip:hover .tooltiptext {
++  visibility: visible;
++  opacity: 1;
++}
+     </style>
+   </head>
+   <body>
+@@ -115,6 +162,10 @@
+             <input type="file" style="visibility:hidden" id="csvFile" accept=".csv"/>
+           </fieldset>
+         </form>
++      </section>
++    </div>
++    <div role="results">
++      <section>
+         <p><strong>Current list of recipients:</strong></p>
+         <form name="viewResultFilter">
+           <input type="radio" id="all" name="viewFilters" value="all" checked/>
+diff --git a/assets/index.js b/assets/index.js
+index 7a0a539..d296385 100644
+--- a/assets/index.js
++++ b/assets/index.js
+@@ -7,11 +7,21 @@ const uploadButton = document.getElementById('uploadCSV');
+ 
+ const recipients = [];
+ 
+-function addRecipient(phoneNumber) {
+-  recipients.push(phoneNumber);
++function addRecipient(phoneNumber, params) {
++  recipients.push({ number: phoneNumber, parameters: params });
++
+   const newListItem = document.createElement('li');
+   newListItem.innerText = phoneNumber;
+-  newListItem.id= `id_${phoneNumber.replace('+', '')}`;
++  newListItem.id = `id_${phoneNumber.replace('+', '')}`;
++  newListItem.className = 'tooltip';
++
++  const tooltipText = document.createElement('span');
++  tooltipText.innerText = JSON.stringify(params);
++  tooltipText.id = `tt_${phoneNumber.replace('+', '')}`;
++  tooltipText.className = 'tooltiptext';
++
++  newListItem.appendChild(tooltipText);
++  
+   recipientList.appendChild(newListItem);
+ }
+ 
+@@ -24,7 +34,8 @@ recipientForm.addEventListener('submit', (evt) => {
+   evt.preventDefault();
+ 
+   if (newRecipientInput.value) {
+-    addRecipient(newRecipientInput.value);
++    const params = newRecipientInput.value.split(',')
++    addRecipient(params[0], params);
+     newRecipientInput.value = '';
+   }
+ });
+@@ -58,8 +69,9 @@ function parseCSV(file) {
+   const reader = new FileReader();
+   reader.addEventListener('load', (event) => {
+     const numberlist = event.target.result.split('\n');
+-    numberlist.forEach((number) => {
+-      addRecipient(number);
++    numberlist.forEach((row) => {
++      const values = row.split(',');
++      addRecipient(values[0], values);
+     });
+   });
+   reader.readAsText(file);
+@@ -95,7 +107,7 @@ async function sendMessages(form) {
+     const data = {
+       passcode: form.passcode.value,
+       message: form.message.value,
+-      recipients: batch.join(','),
++      recipients: batch,
+       requestId: sent.length
+     };
+     sent = [ ...sent, ...batch ];
+@@ -133,12 +145,20 @@ async function sendMessages(form) {
+         const to = item.to;
+         const elem = document.getElementById('id_' + to.replace('+', ''));
+         if (elem) {
+-          elem.className = item.success ? 'success' : 'failed';
++          elem.classList.add((item.success) ? 'success' : 'failed');
++          let message = '';
+           if( item.success ) {
+-            elem.textContent += ' Message SID: ' + item.sid;
++            message = ' Message SID: ' + item.sid;
+           } else {
+-            elem.textContent += ' Error: ' + item.error;
++            message = ' Error: ' + item.error;
+           }
++          const newItem = document.createElement("span");
++          newItem.classList.add('result');
++          const textnode = document.createTextNode(message);
++          
++          newItem.appendChild(textnode);
++          elem.insertBefore(newItem, elem.childNodes[1]);
++
+         } else {
+           console.error(`${body.requestId} Could not find element for ${to} Error Message: ${item.error}`);
+         }
+diff --git a/functions/send-messages.js b/functions/send-messages.js
+index ffa1798..2dd941f 100644
+--- a/functions/send-messages.js
++++ b/functions/send-messages.js
+@@ -1,6 +1,10 @@
+ // eslint-disable-next-line consistent-return
+ exports.handler = function (context, event, callback) {
+-  const phoneNumbers = event.recipients.split(',').map((x) => x.trim());
++
++  console.log(JSON.stringify(event, null, 2));
++
++  //const phoneNumbers = event.recipients.split(',').map((x) => x.trim());
++  const recipients = event.recipients;
+   const { message, passcode } = event;
+ 
+   if (passcode !== context.PASSCODE) {
+@@ -24,12 +28,19 @@ exports.handler = function (context, event, callback) {
+     console.log(`*****!!!!!!!In PRODUCTION mode!!!!!!!*****`);
+   }
+   
+-  const allMessageRequests = phoneNumbers.map((to) => {
++  const allMessageRequests = recipients.map((recipient) => {
++
++    let msgBody = message;
++    recipient.parameters.filter((param, idx) => {
++      msgBody = msgBody.replace(`{${idx}}`, param);
++    });
++    console.log(`Sending message to ${recipient.number} with body ${msgBody}`);
++
+     return client.messages
+       .create({
+         from,
+-        to,
+-        body: message,
++        to: recipient.number,
++        body: msgBody,
+       })
+       .then((msg) => {
+         console.log(`Message sent [${msg.sid}] ${msg.from} ${msg.to}`);
+diff --git a/package.json b/package.json
+index 9096d7a..76ca407 100644
+--- a/package.json
++++ b/package.json
+@@ -5,7 +5,8 @@
+   "scripts": {
+     "test": "echo \"Error: no test specified\" && exit 1",
+     "start": "twilio-run",
+-    "deploy": "twilio-run deploy"
++    "deploy": "twilio-run deploy",
++    "deploy:production": "twilio-run deploy --production"
+   },
+   "dependencies": {
+     "twilio": "^3.56"
+diff --git a/testfiles/10numbers-params.csv b/testfiles/10numbers-params.csv
+new file mode 100644
+index 0000000..ebdbf9c
+--- /dev/null
++++ b/testfiles/10numbers-params.csv
+@@ -0,0 +1,10 @@
+++61415630038,Lenore,40
+++61414241369,Gala,20
+++61415374040,Ruby,60
+++61416047762,Micki,80
+++61417851205,Christena,90
+++61414928983,Reyna,30
+++61418022581,Garry,25
+++61411558141,Katharyn,35
+++61417775830,Terrell,12
+++61411430335,Shaun,17
+\ No newline at end of file
+-- 
+2.30.1 (Apple Git-130)
+
