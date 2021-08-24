@@ -86,8 +86,9 @@
   /* width: 120px; */
   background-color: #555;
   color: #fff;
-  text-align: center;
+  text-align: left;
   padding: 5px;
+  padding-left: 30px;
   border-radius: 3px;
 
   /* Position the tooltip text */
@@ -96,15 +97,30 @@
   bottom: 125%;
   left: 50%;  */
   margin-left: 20px;
+  margin-top: 10px;
 
   /* Fade in tooltip */
   opacity: 0;
   transition: opacity 0.3s;
 }
 
+/* .tooltip .tooltiptext:after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0;
+  position: absolute;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-right: 5px solid #555;
+  left: 30px;
+  top: 7px;
+} */
+
 /* Show the tooltip text when you mouse over the tooltip container */
 .tooltip:hover .tooltiptext {
   visibility: visible;
+  display: block;
   opacity: 1;
 }
     </style>
