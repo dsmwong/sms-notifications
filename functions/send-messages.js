@@ -1,9 +1,6 @@
 // eslint-disable-next-line consistent-return
 exports.handler = function (context, event, callback) {
 
-  console.log(JSON.stringify(event, null, 2));
-
-  //const phoneNumbers = event.recipients.split(',').map((x) => x.trim());
   const recipients = event.recipients;
   const { message, passcode } = event;
 
@@ -50,7 +47,7 @@ exports.handler = function (context, event, callback) {
         //const toNumber = (err.code === 21211) ? err.message.split(' ')[3] : 'unknown'
         const numberList = err.message.match(/\+[0-9]+/g) || [];
         const toNumber = numberList.length > 0 ? numberList[0] : 'unknown'
-        console.log(`Message failed for ${toNumber} or ${to} [${err.code} ${err.message}]`);
+        console.log(`Message failed for ${toNumber} or ${recipient.number} [${err.code} ${err.message}]`);
         return { success: false, error: err.message, to };
       });
   });

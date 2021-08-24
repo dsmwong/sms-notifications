@@ -3,6 +3,7 @@ const sendNotificationForm = document.getElementById('sendNotificationForm');
 const newRecipientInput = document.getElementById('newRecipientInput');
 const recipientList = document.getElementById('recipients');
 const resultSection = document.getElementById('resultSection');
+const totalSuccessOutput = document.getElementById('totalSuccess');
 const uploadButton = document.getElementById('uploadCSV');
 
 const recipients = [];
@@ -100,6 +101,7 @@ async function sendMessages(form) {
   
   const MAXSEND = 20;
   let sent = [];
+  let totalSuccess = 0;
 
   while( recipients.length > 0 && sent.length < recipients.length ) {
 
@@ -112,7 +114,7 @@ async function sendMessages(form) {
     };
     sent = [ ...sent, ...batch ];
 
-    console.log(`Sending request ${data.requestId} -- ${data.recipients}`);
+    console.log(`Sending request ${data.requestId}`, data.recipients);
 
     fetch('send-messages', {
       method: 'POST',
@@ -140,6 +142,8 @@ async function sendMessages(form) {
       }, 0);
 
       console.log(`Request ${body.requestId} -- ${successCount} of ${body.result.length}`);
+      totalSuccess += successCount;
+      totalSuccessOutput.innerText = `${totalSuccess} Successfully Sent`;
 
       body.result.map( item => {
         const to = item.to;
@@ -175,10 +179,13 @@ async function sendMessages(form) {
       console.log(`Sent ${sent.length} messages - throttling`);
       await sleep(1000);
     }
+    resultSection.innerText = `Sent ${sent.length} messages. One moment`;
 
   }
   clearForm(form);
   console.log('Sending to ' + sent.length + ' recipients');
+  resultSection.innerText = `Sent ${sent.length} messages. Completed`;
+  
 }
 
 sendNotificationForm.addEventListener('submit', (evt) => {
