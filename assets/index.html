@@ -137,6 +137,13 @@
           <fieldset>
             <label for="passcodeInput" required>Application Passcode</label>
             <input type="password" name="passcode" id="passcodeInput" />
+            <label for="templateSelect">Select Template</label>
+            <select name="template" id="templateSelect">
+              <option value="none">Select a template</option>
+              <!-- <option value="template001">Template 001</option>
+              <option value="template002">Template 002</option>
+              <option value="template003">Template 003</option> -->
+            </select>
             <label for="messageInput">Write your message:</label>
             <textarea name="message" id="messageInput" required></textarea>
             <input class="button-primary" type="submit" value="Send" />
@@ -220,5 +227,6 @@
       </p>
     </footer>
     <script src="index.js"></script>
+    <script src="airtable-templates.js"></script>
   </body>
 </html>
