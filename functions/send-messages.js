@@ -1,6 +1,10 @@
 // eslint-disable-next-line consistent-return
 exports.handler = function (context, event, callback) {
-  const phoneNumbers = event.recipients.split(',').map((x) => x.trim());
+
+  console.log(JSON.stringify(event, null, 2));
+
+  //const phoneNumbers = event.recipients.split(',').map((x) => x.trim());
+  const recipients = event.recipients;
   const { message, passcode } = event;
 
   if (passcode !== context.PASSCODE) {
@@ -24,12 +28,19 @@ exports.handler = function (context, event, callback) {
     console.log(`*****!!!!!!!In PRODUCTION mode!!!!!!!*****`);
   }
   
-  const allMessageRequests = phoneNumbers.map((to) => {
+  const allMessageRequests = recipients.map((recipient) => {
+
+    let msgBody = message;
+    recipient.parameters.filter((param, idx) => {
+      msgBody = msgBody.replace(`{${idx}}`, param);
+    });
+    console.log(`Sending message to ${recipient.number} with body ${msgBody}`);
+
     return client.messages
       .create({
         from,
-        to,
-        body: message,
+        to: recipient.number,
+        body: msgBody,
       })
       .then((msg) => {
         console.log(`Message sent [${msg.sid}] ${msg.from} ${msg.to}`);

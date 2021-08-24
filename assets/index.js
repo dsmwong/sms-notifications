@@ -7,11 +7,21 @@ const uploadButton = document.getElementById('uploadCSV');
 
 const recipients = [];
 
-function addRecipient(phoneNumber) {
-  recipients.push(phoneNumber);
+function addRecipient(phoneNumber, params) {
+  recipients.push({ number: phoneNumber, parameters: params });
+
   const newListItem = document.createElement('li');
   newListItem.innerText = phoneNumber;
-  newListItem.id= `id_${phoneNumber.replace('+', '')}`;
+  newListItem.id = `id_${phoneNumber.replace('+', '')}`;
+  newListItem.className = 'tooltip';
+
+  const tooltipText = document.createElement('span');
+  tooltipText.innerText = JSON.stringify(params);
+  tooltipText.id = `tt_${phoneNumber.replace('+', '')}`;
+  tooltipText.className = 'tooltiptext';
+
+  newListItem.appendChild(tooltipText);
+  
   recipientList.appendChild(newListItem);
 }
 
@@ -24,7 +34,8 @@ recipientForm.addEventListener('submit', (evt) => {
   evt.preventDefault();
 
   if (newRecipientInput.value) {
-    addRecipient(newRecipientInput.value);
+    const params = newRecipientInput.value.split(',')
+    addRecipient(params[0], params);
     newRecipientInput.value = '';
   }
 });
@@ -58,8 +69,9 @@ function parseCSV(file) {
   const reader = new FileReader();
   reader.addEventListener('load', (event) => {
     const numberlist = event.target.result.split('\n');
-    numberlist.forEach((number) => {
-      addRecipient(number);
+    numberlist.forEach((row) => {
+      const values = row.split(',');
+      addRecipient(values[0], values);
     });
   });
   reader.readAsText(file);
@@ -95,7 +107,7 @@ async function sendMessages(form) {
     const data = {
       passcode: form.passcode.value,
       message: form.message.value,
-      recipients: batch.join(','),
+      recipients: batch,
       requestId: sent.length
     };
     sent = [ ...sent, ...batch ];
@@ -133,12 +145,20 @@ async function sendMessages(form) {
         const to = item.to;
         const elem = document.getElementById('id_' + to.replace('+', ''));
         if (elem) {
-          elem.className = item.success ? 'success' : 'failed';
+          elem.classList.add((item.success) ? 'success' : 'failed');
+          let message = '';
           if( item.success ) {
-            elem.textContent += ' Message SID: ' + item.sid;
+            message = ' Message SID: ' + item.sid;
           } else {
-            elem.textContent += ' Error: ' + item.error;
+            message = ' Error: ' + item.error;
           }
+          const newItem = document.createElement("span");
+          newItem.classList.add('result');
+          const textnode = document.createTextNode(message);
+          
+          newItem.appendChild(textnode);
+          elem.insertBefore(newItem, elem.childNodes[1]);
+
         } else {
           console.error(`${body.requestId} Could not find element for ${to} Error Message: ${item.error}`);
         }
