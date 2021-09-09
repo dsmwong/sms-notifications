@@ -61,3 +61,7 @@ With the [Twilio CLI](https://www.twilio.com/docs/twilio-cli/quickstart):
 ```
 twilio serverless:deploy
 ```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](license.md) file for details
