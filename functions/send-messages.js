@@ -40,8 +40,8 @@ exports.handler = function (context, event, callback) {
         body: msgBody,
       })
       .then((msg) => {
-        console.log(`Message sent [${msg.sid}] ${msg.from} ${msg.to}`);
-        return { success: true, sid: msg.sid, to: msg.to};
+        console.log(`Message sent [${msg.sid}] ${msg.from} ${msg.to} with message ${msg.body}`);
+        return { success: true, sid: msg.sid, to: msg.to, body: msg.body };
       })
       .catch((err) => {
         //const toNumber = (err.code === 21211) ? err.message.split(' ')[3] : 'unknown'
