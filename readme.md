@@ -2,6 +2,12 @@
 
 Send SMS messages from the browser
 
+Messages are sent via the Twilio SMS api using the scheduled messages feature.
+
+![NEW](./docs/new_messages.png)
+
+![Scheduled](./docs/existing_messages.png)
+
 ## Pre-requisites
 
 ### Environment variables
@@ -17,21 +23,52 @@ In your `.env` file, set the following values:
 
 Additional Testing environment variables are required for Testing and use of [Magic Number](https://www.twilio.com/blog/2018/04/twilio-test-credentials-magic-numbers.html)
 
-| Variable              | Description                                              | Required |
-| :-------------------- | :------------------------------------------------------- | :------- |
-| `TESTMODE`            | Is this application running in Test Mode                 | Yes      |
-| `TEST_ACCOUNT_SID`    | Test Credential SID from [here](https://www.twilio.com/console/project/settings) | Yes in Testmode |
-| `TEST_AUTH_TOKEN`     | Test Credential Auth Token from [here](https://www.twilio.com/console/project/settings) | Yes in Testmode |
+| Variable           | Description                                                                             | Required        |
+| :----------------- | :-------------------------------------------------------------------------------------- | :-------------- |
+| `TESTMODE`         | Is this application running in Test Mode                                                | Yes             |
+| `TEST_ACCOUNT_SID` | Test Credential SID from [here](https://www.twilio.com/console/project/settings)        | Yes in Testmode |
+| `TEST_AUTH_TOKEN`  | Test Credential Auth Token from [here](https://www.twilio.com/console/project/settings) | Yes in Testmode |
 
 ### Function Parameters
 
-`/send-messages` gets invoked by the `index.html` page and expects three post parameters:
+#### List
 
-| Parameter    | Description                                                                   | Required |
-| :----------- | :---------------------------------------------------------------------------- | :------- |
-| `passcode`   | The passcode to compare against the stored passcode                           | Yes      |
-| `message`    | The message you want to broadcast                                             | Yes      |
-| `recipients` | A comma seprated list of E.164 formatted phone numbers to send the message to | Yes      |
+`/api/list` gets invoked by the app and expects one parameter
+
+| Parameter  | Description                                         | Required |
+| :--------- | :-------------------------------------------------- | :------- |
+| `passcode` | The passcode to compare against the stored passcode | Yes      |
+
+Returns a list of scheduled messages for this account
+
+#### Schedule
+
+`/api/schedule` gets invoked by the app and expects three post parameters:
+
+| Parameter    | Description                                              | Required |
+| :----------- | :------------------------------------------------------- | :------- |
+| `passcode`   | The passcode to compare against the stored passcode      | Yes      |
+| `recipients` | An array of recipients (objects) with keys defined below | Yes      |
+
+| Parameter | Description                                                    | Required |
+| :-------- | :------------------------------------------------------------- | :------- |
+| `cid`     | Correlation ID, returned in the response                       | Yes      |
+| `phone`   | Destination phone number                                       | Yes      |
+| `message` | Body of the message to send                                    | Yes      |
+| `sendAt`  | ISO8601 Date/Time string representing when to send the message | Yes      |
+
+Returns a list of messages indicating if they have been scheduled or failed to schedule (with error reason)
+
+#### Cancel
+
+`/api/cancel` gets invoked by the app and expects two post parameter
+
+| Parameter  | Description                                                         | Required |
+| :--------- | :------------------------------------------------------------------ | :------- |
+| `passcode` | The passcode to compare against the stored passcode                 | Yes      |
+| `sids`     | An array of message SIDs (strings) for each message to be cancelled | Yes      |
+
+Returns a list of messages indicating if they have been canceled or failed to cancel (with error reason)
 
 ## Create a new project with the template
 
